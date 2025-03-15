@@ -4,22 +4,24 @@ import user_management as dbHandler
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
+# Loads environment variables
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')
+app.secret_key = os.getenv('SECRET_KEY')  
+# Note: App MUST have an .env file with a set secret key variable 
 
 @app.route("/", methods=["POST", "GET"])
 @app.route("/index", methods=["POST", "GET"])
 def home():
     if request.method == "POST":
         username = request.form["username"]
-        password = request.form["password"]
-        user = dbHandler.retrieveUsers(username)
+        password = request.form["password"] # Gets user input
+        user = dbHandler.retrieveUsers(username) # Calls function to get user data from database
         
+        # Cross checking if user input = database data
         if user and check_password_hash(user['password'], password):
-            session["username"] = username  # Store session data
+            session["username"] = username  # Stores session data
             return redirect(url_for("add_feedback"))
         else:
             return render_template("index.html")
@@ -32,8 +34,8 @@ def signup():
         username = request.form["username"]
         password = request.form["password"]
         dob = request.form["dob"]
-        hashed_password = generate_password_hash(password)
-        dbHandler.insertUser(username, hashed_password, dob)
+        hashed_password = generate_password_hash(password) # Hashes the password user inputted 
+        dbHandler.insertUser(username, hashed_password, dob) # Calls function to insert data into database
         return redirect(url_for("home"))
     
     return render_template("signup.html")
@@ -41,12 +43,12 @@ def signup():
 @app.route("/success", methods=["POST", "GET"])
 def add_feedback():
     if "username" not in session:
-        return redirect(url_for("home"))
+        return redirect(url_for("home")) # Session checking 
 
     if request.method == "POST":
         feedback = request.form["feedback"]
-        dbHandler.insertFeedback(feedback)
-    dbHandler.listFeedback()
+        dbHandler.insertFeedback(feedback) # Calls function to insert data into database
+    dbHandler.listFeedback() # Writes feedback from database onto the html 
     return render_template("success.html", state=True, value="Back")
     
 @app.route("/logout")
